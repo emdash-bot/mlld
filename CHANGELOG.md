@@ -5,18 +5,10 @@ All notable changes to the mlld project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-- `exe recursive` label — self-calling exe functions with bounded depth. Add `recursive` to any `exe` label list to allow a function to call itself up to a configurable depth limit (default 64, override with `MLLD_RECURSION_DEPTH`). Works with `exe llm`, inside `for`/`for parallel` loops (each branch tracks depth independently), and composes with checkpointing. Non-recursive functions retain existing immediate-throw behavior on self-call.
-
-### Fixed
-- Circular reference guard now fires after argument evaluation rather than before. This fixes a pre-existing bug where `@f(@f(x))` — a non-recursive nested call of the same function — was incorrectly rejected as circular. Arguments are evaluated in the caller's scope before the callee's body begins, so nesting the same function as an argument is valid and now works correctly.
-- For-loop variables (`@varName`, `@varName_key`, `@varName.field`) are now marked as block-scoped and can shadow parent-scope variables with the same name. This fixes a bug where `exe recursive` functions containing `for`/`for parallel` loops would throw `VariableRedefinitionError` on the recursive call when the loop variable name matched one in an ancestor scope.
-
 ## [2.0.4]
 
 ### Added
+- `exe recursive` label — self-calling exe functions with bounded depth. Add `recursive` to any `exe` label list to allow a function to call itself up to a configurable depth limit (default 64, override with `MLLD_RECURSION_DEPTH`). Works with `exe llm`, inside `for`/`for parallel` loops (each branch tracks depth independently), and composes with checkpointing. Non-recursive functions retain existing immediate-throw behavior on self-call.
 - VirtualFS contract freeze baseline: finalized public API/migration decisions, phase plan, and regression checklist artifacts (`plan-virtualfs.md`, `docs/dev/VIRTUALFS-CONTRACT.md`, `tests/virtualfs/REGRESSION-CHECKLIST.md`)
 - `VirtualFS` core `IFileSystemService` implementation with copy-on-write overlay semantics (`empty`/`over`, shadow-first reads, delete masking, directory merge behavior) plus new core/integration test coverage
 - `VirtualFS` lifecycle APIs for inspect/apply/revert workflows: `changes`/`diff`, `discard`, `reset`, scoped/global `flush`, deterministic `export`, and `apply` with strict patch typings
@@ -28,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completed VirtualFS coverage across dev/user docs and SDK atoms, including architecture placement, no-grammar-impact note, test-harness guidance, SDK usage patterns, and docs-mirroring SDK example tests
 
 ### Fixed
+- Circular reference guard now fires after argument evaluation rather than before. This fixes a pre-existing bug where `@f(@f(x))` — a non-recursive nested call of the same function — was incorrectly rejected as circular. Arguments are evaluated in the caller's scope before the callee's body begins, so nesting the same function as an argument is valid and now works correctly.
+- For-loop variables (`@varName`, `@varName_key`, `@varName.field`) are now marked as block-scoped and can shadow parent-scope variables with the same name. This fixes a bug where `exe recursive` functions containing `for`/`for parallel` loops would throw `VariableRedefinitionError` on the recursive call when the loop variable name matched one in an ancestor scope.
 - MCP server: handle `notifications/initialized` per protocol spec instead of returning an error that caused clients to restart the server
 - MCP server: suppress responses for JSON-RPC notifications (messages without `id`)
 - MCP server: `tools/call` returned "Tool not found" for exported functions with snake_case names due to incorrect camelCase round-trip in `resolveToolKey`
