@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - MCP server: strip namespace prefix from tool calls (e.g., `server-name:tool_name` → `tool_name`) to support clients that send namespaced tool names
 - Circular reference guard now fires after argument evaluation rather than before. This fixes a pre-existing bug where `@f(@f(x))` — a non-recursive nested call of the same function — was incorrectly rejected as circular. Arguments are evaluated in the caller's scope before the callee's body begins, so nesting the same function as an argument is valid and now works correctly.
+- `exe recursive` label now survives module import boundaries. Previously, importing a function that internally called a `recursive`-labelled function (directly or transitively through a wrapper) would drop the `recursive` label during `capturedModuleEnv` rehydration, causing a spurious `CircularReference` error at runtime. Fixed in `CapturedEnvRehydrator` (now threads the `__metadata__` map through deserialization so inner executables retain their labels) and `VariableManager.hasVariable` (now searches `capturedModuleEnv` so the recursion guard resolves correctly for captured-scope executables).
+- `PythonPackageManager` availability probes now use `spawnSync` instead of `execSync`, avoiding `EPERM` errors in sandboxed environments where `execSync` is restricted.
 
 ### Documentation
 - Completed VirtualFS coverage across dev/user docs and SDK atoms, including architecture placement, no-grammar-impact note, test-harness guidance, SDK usage patterns, and docs-mirroring SDK example tests
